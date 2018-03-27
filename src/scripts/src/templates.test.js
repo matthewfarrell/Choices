@@ -1,6 +1,8 @@
 import { expect } from 'chai';
-import TEMPLATES from './templates';
+import templates from './templates';
 import { getType, strToEl } from './lib/utils';
+
+const stripElement = element => element.outerHTML.replace(/(^|>)\s+|\s+(?=<|$)/g, '$1');
 
 describe('templates', () => {
   // describe('containerOuter', () => {
@@ -13,16 +15,44 @@ describe('templates', () => {
         containerInner: 'test',
       };
       const expectedOutput = strToEl(`<div class="${classes.containerInner}"></div>`);
-      const actualOutput = TEMPLATES.containerInner(classes);
+      const actualOutput = templates.containerInner(classes);
 
       expect(getType(actualOutput)).to.equal('HTMLDivElement');
-      expect(actualOutput.outerHTML).to.equal(expectedOutput.outerHTML);
+      expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
     });
   });
 
-  // describe('itemList', () => {
+  describe('itemList', () => {
+    describe('select one element', () => {
+      it('returns expected html', () => {
+        const classes = {
+          list: 'test 1',
+          listSingle: 'test 2',
+          listItems: 'test 3',
+        };
+        const expectedOutput = strToEl(`<div class="${classes.list} ${classes.listSingle}"></div>`);
+        const actualOutput = templates.itemList(classes, true);
 
-  // });
+        expect(getType(actualOutput)).to.equal('HTMLDivElement');
+        expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
+      });
+    });
+
+    describe('non select one element', () => {
+      it('returns expected html', () => {
+        const classes = {
+          list: 'test 1',
+          listSingle: 'test 2',
+          listItems: 'test 3',
+        };
+        const expectedOutput = strToEl(`<div class="${classes.list} ${classes.listItems}"></div>`);
+        const actualOutput = templates.itemList(classes, false);
+
+        expect(getType(actualOutput)).to.equal('HTMLDivElement');
+        expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
+      });
+    });
+  });
 
   describe('placeholder', () => {
     it('returns expected html', () => {
@@ -33,10 +63,10 @@ describe('templates', () => {
       const expectedOutput = strToEl(`
         <div class="${classes.placeholder}">${value}</div>`,
       );
-      const actualOutput = TEMPLATES.placeholder(classes, value);
+      const actualOutput = templates.placeholder(classes, value);
 
       expect(getType(actualOutput)).to.equal('HTMLDivElement');
-      expect(actualOutput.outerHTML).to.equal(expectedOutput.outerHTML);
+      expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
     });
   });
 
@@ -44,9 +74,48 @@ describe('templates', () => {
 
   // });
 
-  // describe('choiceList', () => {
+  describe('choiceList', () => {
+    describe('select one element', () => {
+      it('returns expected html', () => {
+        const classes = {
+          list: 'test',
+        };
+        const expectedOutput = strToEl(`
+          <div
+            class="${classes.list}"
+            dir="ltr"
+            role="listbox"
+            >
+          </div>
+        `);
+        const actualOutput = templates.choiceList(classes, true);
 
-  // });
+        expect(getType(actualOutput)).to.equal('HTMLDivElement');
+        expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
+      });
+    });
+
+    describe('non select one element', () => {
+      it('returns expected html', () => {
+        const classes = {
+          list: 'test',
+        };
+        const expectedOutput = strToEl(`
+          <div
+            class="${classes.list}"
+            dir="ltr"
+            role="listbox"
+            aria-multiselectable="true"
+            >
+          </div>
+        `);
+        const actualOutput = templates.choiceList(classes, false);
+
+        expect(getType(actualOutput)).to.equal('HTMLDivElement');
+        expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
+      });
+    });
+  });
 
   // describe('choiceGroup', () => {
 
@@ -73,10 +142,10 @@ describe('templates', () => {
           aria-autocomplete="list"
         >
       `);
-      const actualOutput = TEMPLATES.input(classes);
+      const actualOutput = templates.input(classes);
 
       expect(getType(actualOutput)).to.equal('HTMLInputElement');
-      expect(actualOutput.outerHTML).to.equal(expectedOutput.outerHTML);
+      expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
     });
   });
 
@@ -88,16 +157,75 @@ describe('templates', () => {
       };
       const value = 'Test';
       const expectedOutput = strToEl(`<div class="${classes.list} ${classes.listDropdown}" aria-expanded="false"></div>`);
-      const actualOutput = TEMPLATES.dropdown(classes, value);
+      const actualOutput = templates.dropdown(classes, value);
 
       expect(getType(actualOutput)).to.equal('HTMLDivElement');
-      expect(actualOutput.outerHTML).to.equal(expectedOutput.outerHTML);
+      expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
     });
   });
 
-  // describe('notice', () => {
+  describe('notice', () => {
+    it('returns expected html', () => {
+      const classes = {
+        item: 'test 1',
+        itemChoice: 'test 2',
+        noResults: 'test 3',
+        noChoices: 'test 4',
+      };
+      const label = 'Test';
+      const expectedOutput = strToEl(`
+        <div class="${classes.item} ${classes.itemChoice}">
+          ${label}
+        </div>
+      `);
+      const actualOutput = templates.notice(classes, label);
 
-  // });
+      expect(getType(actualOutput)).to.equal('HTMLDivElement');
+      expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
+    });
+
+    describe('passing a notice type', () => {
+      describe('no results', () => {
+        it('adds no results classname', () => {
+          const classes = {
+            item: 'test 1',
+            itemChoice: 'test 2',
+            noResults: 'test 3',
+            noChoices: 'test 4',
+          };
+          const label = 'Test';
+          const expectedOutput = strToEl(`
+            <div class="${classes.item} ${classes.itemChoice} ${classes.noResults}">
+              ${label}
+            </div>
+          `);
+          const actualOutput = templates.notice(classes, label, 'no-results');
+
+          expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
+        });
+      });
+
+      describe('no choices', () => {
+        it('adds no choices classname', () => {
+          const classes = {
+            item: 'test 1',
+            itemChoice: 'test 2',
+            noResults: 'test 3',
+            noChoices: 'test 4',
+          };
+          const label = 'Test';
+          const expectedOutput = strToEl(`
+            <div class="${classes.item} ${classes.itemChoice} ${classes.noChoices}">
+              ${label}
+            </div>
+          `);
+          const actualOutput = templates.notice(classes, label, 'no-choices');
+
+          expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
+        });
+      });
+    });
+  });
 
   describe('option', () => {
     it('returns expected html', () => {
@@ -107,13 +235,11 @@ describe('templates', () => {
         value: 'Test value',
         label: 'Test label',
       };
-      const output = TEMPLATES.option(data);
+      const expectedOutput = strToEl(`<option value="${data.value}" ${data.selected ? 'selected' : ''} ${data.disabled ? 'disabled' : ''}>${data.label}</option>`);
+      const actualOutput = templates.option(data);
 
-      expect(getType(output)).to.equal('HTMLOptionElement');
-      expect(output.value).to.equal(data.value);
-      expect(output.textContent).to.equal(data.label);
-      expect(output.disabled).to.equal(false);
-      expect(output.selected).to.equal(false);
+      expect(getType(actualOutput)).to.equal('HTMLOptionElement');
+      expect(stripElement(actualOutput)).to.equal(stripElement(expectedOutput));
     });
 
     describe('when selected', () => {
@@ -124,7 +250,7 @@ describe('templates', () => {
           value: 'Test value',
           label: 'Test label',
         };
-        const output = TEMPLATES.option(data);
+        const output = templates.option(data);
 
         expect(output.selected).to.equal(true);
       });
@@ -138,7 +264,7 @@ describe('templates', () => {
           value: 'Test value',
           label: 'Test label',
         };
-        const output = TEMPLATES.option(data);
+        const output = templates.option(data);
 
         expect(output.disabled).to.equal(true);
       });
