@@ -69,6 +69,7 @@ class Choices {
       searchFloor: 1,
       searchResultLimit: 4,
       searchFields: ['label', 'value'],
+      setWidth: true,
       position: 'auto',
       resetScrollPosition: true,
       regexFilter: null,
@@ -1590,6 +1591,9 @@ class Choices {
    * @return
    */
   _setInputWidth() {
+    if (!this.config.setWidth) {
+      return;
+    }
     if (this.placeholder) {
       // If there is a placeholder, we only want to set the width of the input when it is a greater
       // length than 75% of the placeholder. This stops the input jumping around.
@@ -2767,7 +2771,9 @@ class Choices {
       input.placeholder = this.config.searchPlaceholderValue || '';
     } else if (this.placeholder) {
       input.placeholder = this.placeholder;
-      input.style.width = getWidthOfInput(input);
+      if (this.config.setWidth) {
+        input.style.width = '50px';//getWidthOfInput(input);
+      }
     }
 
     if (!this.config.addItems) {
